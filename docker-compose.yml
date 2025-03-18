@@ -1,0 +1,55 @@
+version: '3.8'
+
+networks:
+  netmonitor_network:  # 🔥 Création du réseau
+    driver: bridge
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/kdd_cup99
+    depends_on:
+      db:
+        condition: service_healthy  # 🚀 Attendre que la DB soit prête
+    restart: always
+    networks:
+      - netmonitor_network
+ 
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "8501:8501"
+    depends_on:
+      - backend
+    networks:
+      - netmonitor_network
+ 
+  db:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: kdd_cup99
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d kdd_cup99"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./data/KDDCup99.csv:/docker-entrypoint-initdb.d/KDDCup99.csv
+    ports:
+      - "5432:5432"
+    networks:
+      - netmonitor_network
+ 
+volumes:
+  postgres_data:
