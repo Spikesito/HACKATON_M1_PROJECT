@@ -4,7 +4,7 @@ import plotly.express as px
 import requests
 
 # API URL
-API_URL = "http://localhost:8000/data/filter"
+API_URL = "http://backend:8000/data/filter"
 
 # Sidebar
 st.sidebar.title("NetMonitor")
@@ -27,7 +27,11 @@ else:
     st.error("Erreur lors de la récupération des statistiques depuis l'API.")
     data_selected = {}
 
+if isinstance(data_selected, list) and len(data_selected) > 0:
+    data_selected = data_selected[0]  # Prend le premier élément s'il s'agit d'une liste
+
 evolution = data_selected.get("Evolution", {})
+
 
 col1, col2, col3 = st.columns(3)
 col1.metric("Connexions Totales", f"{data_selected.get('Connexions Totales', 0)}", delta_color="inverse" if evolution.get('Connexions Totales', 0) < 0 else "normal")
@@ -51,3 +55,4 @@ if response.status_code == 200:
     st.plotly_chart(fig_pie, use_container_width=True)
 else:
     st.error("Erreur lors de la récupération des données de protocoles.")
+

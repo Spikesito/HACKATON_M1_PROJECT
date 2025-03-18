@@ -2,7 +2,8 @@ import os
 from fastapi import FastAPI, Query
 from databases import Database
 
-DB_URL = os.getenv("DATABASE_URL")
+# DB_URL = os.getenv("DATABASE_URL")
+DB_URL = "postgresql://user:password@db:5432/kdd_cup99"
 
 app = FastAPI(
     title="KDDCup99 API", 

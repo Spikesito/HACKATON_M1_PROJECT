@@ -4,8 +4,16 @@ import plotly.express as px
 import requests
 
 # API URL
-API_URL = "http://localhost:8000/data/filter"
+API_URL = "http://backend:8000/data/filter"
 
+
+try:
+    response = requests.get(API_URL)
+    print(f"Status Code: {response.status_code}")
+    print(response.text)  # Afficher la réponse brute pour voir l'erreur exacte
+except requests.exceptions.RequestException as e:
+    print("Erreur de connexion :", e)
+    
 # Sidebar
 st.sidebar.title("NetMonitor")
 st.sidebar.markdown("""

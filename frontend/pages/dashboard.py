@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import requests
 
 # API URL
-API_URL = "http://localhost:8000/data/filter"
+API_URL = "http://backend:8000/data/filter"
 
 # Sidebar
 st.sidebar.title("NetMonitor")
