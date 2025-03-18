@@ -14,7 +14,7 @@ services:
       - DATABASE_URL=postgresql://user:password@db:5432/kdd_cup99
     depends_on:
       db:
-        condition: service_healthy  # 🚀 Attendre que la DB soit prête
+        condition: service_healthy  # Attendre que la DB soit prête
     restart: always
     networks:
       - netmonitor_network

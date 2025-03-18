@@ -3,20 +3,27 @@ import pandas as pd
 import requests
 
 # API URL
-API_URL = "http://localhost:8000/data/filter"
+API_URL = "http://backend:8000/data/filter"
 
 # Sidebar
 st.sidebar.title("NetMonitor")
 st.sidebar.markdown("""
+Dans ce projet de Hackathon, nous avons développé une application de surveillance de réseau appelée NetMonitor.
 - 📊 Tableau de bord
-- 🔍 Connexions
 - 🚨 Anomalies
-- 📈 Statistiques
-- 📝 Logs & Historique
+- 📈 Prédictions
+- 📝 Documentation API
+
+Participants :
+ - Adam AHMAT
+ - Mathys POINTARD
+ - Melvin MIAUX
+ - Guillaume CRISTINI
+ - Emile SEGURET
 """)
 
-st.title("Logs & Historique")
-st.write("Journal des événements réseau pour audit et analyse post-incident.")
+st.title("Prediction des Anomalies")
+st.write("Visualisez les anomalies détectées par l'agent de Machine Learning.")
 
 # Filtres avancés
 with st.expander("Filtres avancés"):
@@ -41,7 +48,7 @@ else:
 
 # Pagination des logs
 if not data_logs.empty:
-    page_size = 10
+    page_size = 50
     total_pages = len(data_logs) // page_size + (1 if len(data_logs) % page_size > 0 else 0)
     page = st.slider("Page", 1, total_pages, 1)
     start_idx = (page - 1) * page_size

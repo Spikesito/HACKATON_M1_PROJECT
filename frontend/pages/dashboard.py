@@ -5,19 +5,26 @@ import plotly.graph_objects as go
 import requests
 
 # API URL
-API_URL = "http://localhost:8000/data/filter"
+API_URL = "http://backend:8000/data/filter"
 
 # Sidebar
 st.sidebar.title("NetMonitor")
 st.sidebar.markdown("""
+Dans ce projet de Hackathon, nous avons développé une application de surveillance de réseau appelée NetMonitor.
 - 📊 Tableau de bord
-- 🔍 Connexions
 - 🚨 Anomalies
-- 📈 Statistiques
-- 📝 Logs & Historique
+- 📈 Prédictions
+- 📝 Documentation API
+
+Participants :
+ - Adam AHMAT
+ - Mathys POINTARD
+ - Melvin MIAUX
+ - Guillaume CRISTINI
+ - Emile SEGURET
 """)
 
-st.title("Surveillance Réseau")
+st.title("Tableau de bord")
 st.write("Visualisez et analysez les connexions réseau en temps réel ou en mode replay.")
 
 # Recherche et filtres
@@ -41,14 +48,31 @@ else:
     st.error("Erreur lors de la récupération des données depuis l'API.")
     data = pd.DataFrame()
 
-# Pagination des données
+# Pagination avec boutons Précédent / Suivant
 if not data.empty:
-    page_size = 10
-    total_pages = len(data) // page_size + (1 if len(data) % page_size > 0 else 0)
-    page = st.slider("Page", 1, total_pages, 1)
-    start_idx = (page - 1) * page_size
+    page_size = 500
+    total_pages = (len(data) // page_size) + (1 if len(data) % page_size > 0 else 0)
+    
+    if "page" not in st.session_state:
+        st.session_state.page = 1
+
+    col1, col2, col3 = st.columns([1, 4, 1])
+
+    start_idx = (st.session_state.page - 1) * page_size
     end_idx = start_idx + page_size
+
     st.dataframe(data.iloc[start_idx:end_idx])
+    
+    with col1:
+        if st.session_state.page > 1:
+            if st.button("⬅️ Précédent"):
+                st.session_state.page -= 1
+
+    with col3:
+        if st.session_state.page < total_pages:
+            if st.button("Suivant ➡️"):
+                st.session_state.page += 1
+
 else:
     st.write("Aucune donnée disponible.")
 
