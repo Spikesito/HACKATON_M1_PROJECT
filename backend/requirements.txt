@@ -2,3 +2,9 @@ fastapi
 uvicorn
 asyncpg
 databases
+pandas
+xgboost
+numpy
+scikit-learn
+joblib
+pydantic

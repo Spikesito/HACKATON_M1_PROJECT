@@ -50,7 +50,7 @@ else:
 
 # Pagination avec boutons Précédent / Suivant
 if not data.empty:
-    page_size = 500
+    page_size = 100
     total_pages = (len(data) // page_size) + (1 if len(data) % page_size > 0 else 0)
     
     if "page" not in st.session_state:

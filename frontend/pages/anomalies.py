@@ -4,41 +4,34 @@ import plotly.express as px
 import requests
 
 # API URLs
-API_URL_FILTER = "http://backend:8000/data/filter"
 API_URL_LABELS = "http://backend:8000/stats/labels"
 
 # Sidebar
 st.sidebar.title("NetMonitor")
 st.sidebar.markdown("""
 Dans ce projet de Hackathon, nous avons développé une application de surveillance de réseau appelée NetMonitor.
-- 📊 Tableau de bord
-- 🚨 Anomalies
-- 📈 Prédictions
-- 📝 Documentation API
-
-Participants :
- - Adam AHMAT
- - Mathys POINTARD
- - Melvin MIAUX
- - Guillaume CRISTINI
- - Emile SEGURET
+- 📊 **Tableau de bord**
+- 🚨 **Détection d'anomalies**
+- 🤖 **Prédictions du modèle**
+- 📈 **Statistiques réseau**
 """)
 
-st.title("Détection d'Anomalies")
-st.write("Visualisez les anomalies détectées par l'agent de Machine Learning.")
+st.title("🚨 Analyse des Anomalies")
+st.write("Visualisez les différentes anomalies détectées sur le réseau.")
 
-# Requête API pour récupérer les données filtrées
-response = requests.get(API_URL_FILTER)
+# 📡 **Requête API pour récupérer les anomalies groupées**
+st.subheader("📡 Récupération des données...")
+response = requests.get(API_URL_LABELS)
+
 if response.status_code == 200:
     data = pd.DataFrame(response.json())
 else:
-    st.error("Erreur lors de la récupération des données depuis l'API.")
+    st.error("❌ Erreur lors de la récupération des données depuis l'API.")
     data = pd.DataFrame()
 
-# Vérification de la présence des données
+# 📋 **Affichage du tableau des anomalies**
 if not data.empty:
-    # Grouper par protocole, service et label
-    grouped_data = data.groupby(["protocol_type", "service", "label"]).size().reset_index(name="Nombre d'occurrences")
+    st.subheader("📋 Détails des Anomalies")
 
     # Sélecteur de type d'anomalie
     unique_anomalies = data["label"].unique().tolist()
@@ -47,10 +40,13 @@ if not data.empty:
 
     # Filtrage des données
     if selected_anomaly != "Toutes":
-        grouped_data = grouped_data[grouped_data["label"] == selected_anomaly]
+        data = data[data["label"] == selected_anomaly]
 
-    # Affichage du tableau groupé avec pagination
-    page_size = 10
+    # 📊 Grouper les données
+    grouped_data = data.groupby(["protocol_type", "service", "label"]).sum().reset_index()
+
+    # 📋 Pagination
+    page_size = 50
     total_pages = (len(grouped_data) // page_size) + (1 if len(grouped_data) % page_size > 0 else 0)
 
     if "page" not in st.session_state:
@@ -73,29 +69,32 @@ if not data.empty:
 
     st.dataframe(grouped_data.iloc[start_idx:end_idx])
 else:
-    st.write("Aucune donnée disponible.")
+    st.write("⚠️ Aucune anomalie détectée.")
 
-# 📊 **Histogramme et Pie Chart de la répartition des anomalies**
-st.subheader("Répartition des connexions anormales par type")
+# 📊 **Histogramme des anomalies par protocole**
+st.subheader("📊 Répartition des Anomalies par Protocole")
 
 if not data.empty:
-    anomaly_data = data[data["label"] != "normal"]
+    fig_protocol = px.bar(
+        data,
+        x="protocol_type",
+        y="count",
+        color="label",
+        title="Nombre d'Anomalies par Protocole",
+        labels={"protocol_type": "Protocole", "count": "Nombre d'anomalies"},
+        barmode="group"
+    )
+    st.plotly_chart(fig_protocol, use_container_width=True)
 
-    if not anomaly_data.empty:
-        anomaly_counts = anomaly_data["label"].value_counts().reset_index()
-        anomaly_counts.columns = ["Type d'anomalie", "Nombre"]
+# 📊 **Pie Chart des anomalies par service**
+st.subheader("📊 Répartition des Anomalies par Service")
 
-        # Pie Chart
-        fig_pie = px.pie(
-            anomaly_counts, 
-            names="Type d'anomalie", 
-            values="Nombre", 
-            title="Proportion des types d'anomalies",
-            color="Type d'anomalie"
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
-
-    else:
-        st.write("Aucune anomalie détectée dans les données filtrées.")
-else:
-    st.write("Aucune donnée à afficher pour les graphiques.")
+if not data.empty:
+    fig_service = px.pie(
+        data,
+        names="service",
+        values="count",
+        title="Répartition des Anomalies par Service",
+        color="service"
+    )
+    st.plotly_chart(fig_service, use_container_width=True)
