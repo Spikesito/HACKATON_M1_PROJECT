@@ -21,4 +21,4 @@ Participants :
  - Emile SEGURET
 """)
 
-components.iframe("http://localhost:8000/docs", height=600, scrolling=True)
+components.iframe("http://hackathon-ynov.francecentral.cloudapp.azure.com:8000/docs", height=600, scrolling=True)
