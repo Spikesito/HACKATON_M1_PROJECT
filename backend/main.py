@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, File, UploadFile, HTTPException
 from databases import Database
 import joblib
 import pandas as pd
@@ -7,6 +7,7 @@ import xgboost as xgb
 import numpy as np
 from pydantic import BaseModel, validator
 from typing import Optional
+import io
 
 DB_URL = os.getenv("DATABASE_URL")
 
@@ -167,3 +168,43 @@ async def predict(log: NetworkLog):
         }
     except Exception as e:
         return {"error": f"Erreur lors de la prédiction : {str(e)}"}
+    
+@app.post("/predict_csv")
+async def predict_csv(file: UploadFile = File(...)):
+    try:
+        contents = await file.read()
+        df = pd.read_csv(io.StringIO(contents.decode("utf-8")), sep=';')
+
+        required_columns = ['srv_count', 'dst_host_same_src_port_rate', 'count', 'protocol_type', 
+                            'service', 'dst_host_srv_count', 'dst_host_same_srv_rate', 'same_srv_rate', 
+                            'flag', 'dst_host_serror_rate']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        if missing_columns:
+            raise HTTPException(status_code=400, detail=f"Colonnes manquantes: {', '.join(missing_columns)}")
+
+
+        for col in ['protocol_type', 'service', 'flag']:
+            if col in df.columns:
+                if df[col].dtype == 'object':
+                    df[col] = label_encoders[col].transform(df[col])
+        for col in df.columns:
+            if df[col].dtype == 'object':
+                df[col] = pd.to_numeric(df[col], errors='coerce')  
+        df.fillna(0, inplace=True)  
+        df = df[required_columns]
+
+
+        predictions = model.predict(df)
+        probabilities = model.predict_proba(df)
+        
+        results = []
+        
+        for i in range(len(predictions)):
+            results.append({
+                "id": i,
+                "prediction": label_encoder_y.inverse_transform([predictions[i]])[0],
+                "confidence": float(max(probabilities[i]))  
+            })
+        return {"predictions": results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la prédiction : {str(e)}")
